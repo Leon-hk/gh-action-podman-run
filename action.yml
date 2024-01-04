@@ -1,0 +1,33 @@
+inputs:
+  image:
+    default: docker.io/debian:stable
+  arch:
+    default: amd64
+  mounts:
+    default: ""
+  run:
+    default: true
+runs:
+  using: composite
+  steps:
+    - if: ${{ inputs.arch == 'arm64' }}
+      shell: bash
+      run: |
+        # setup binfmt
+        sudo podman run --privileged ghcr.io/gardenlinux/binfmt_container >/dev/null 2>&1
+    - shell: bash
+      run: |
+        # run
+        mounts=()
+        while read mount; do
+          if [ -n "$mount" ]; then
+            mounts+=(-v "$mount")
+          fi
+        done <<< "$(cat << 'EOF'
+        ${{ inputs.mounts }}
+        EOF
+        )"
+        podman run --quiet --rm --arch '${{ inputs.arch }}' "${mounts[@]}" '${{ inputs.image }}' bash -c "$(cat << 'EOF'
+        ${{ inputs.run }}
+        EOF
+        )"
