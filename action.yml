@@ -10,11 +10,6 @@ inputs:
 runs:
   using: composite
   steps:
-    - if: ${{ inputs.arch == 'arm64' }}
-      shell: bash
-      run: |
-        # setup binfmt
-        sudo podman run --privileged ghcr.io/gardenlinux/binfmt_container >/dev/null 2>&1
     - shell: bash
       run: |
         # run
